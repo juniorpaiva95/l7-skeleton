@@ -1,0 +1,51 @@
+version: '3.3'
+services:
+  php:
+    build: docker/php-fpm
+    container_name: ps-upload-php
+    restart: always
+    volumes:
+      - ./src/:/var/www/laravel
+      - ./src/logs/laravel:/var/www/laravel/storage/logs/
+    networks:
+      - network
+  nginx:
+    build: docker/nginx
+    container_name: ps-upload-nginx
+    restart: always
+    ports:
+      - 9002:80
+    depends_on:
+      - php
+    links:
+      - php
+    volumes:
+      - ./logs/nginx/:/var/log/nginx
+    networks:
+      - network
+  postgres:
+    image: postgres:10
+    container_name: ps-upload-postgres
+    restart: always
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=[AdmPublicSoft@123!]
+      - POSTGRES_DB=ps-upload-api
+    ports:
+      - "9001:5432"
+    networks:
+      - network
+
+networks:
+  network:
+    driver: "bridge"
+
+volumes:
+  postgres-data:
+    driver: "local"
+  redisdata:
+    driver: "local"
+
+
