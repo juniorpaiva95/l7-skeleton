@@ -14,8 +14,9 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 
 WORKDIR /var/www/laravel
 
-#RUN if [  -d "storage" ]; then \
-#   chown -R nginx: /var/www \
-#  	&& chgrp -R nginx storage bootstrap/cache \
-#	  && chmod -R ug+rwx storage bootstrap/cache \
-#;fi
+RUN if [  -d "storage" ]; then \
+    chown -R root:www-data storage \
+    && chown -R root:www-data bootstrap/cache \
+    && chmod -R 775 storage \
+    && chmod -R 775 bootstrap/cache \
+;fi

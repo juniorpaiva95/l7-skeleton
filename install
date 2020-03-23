@@ -1,0 +1,113 @@
+
+#!/usr/bin/env bash
+
+# set enviroment variable
+# echo "export APP_ENV='production'" >> ~/.zshrc
+# create alias to ./develop 
+# echo "alias='./develop'" >> ~/.zshrc
+
+# install dependencies
+# composer install
+# copy migration file from vendor to project database folder
+# php artisan vendor:publish --tag=tenancy
+# migrate system database, reponsable for multi tenant creations
+# php artisan migrate --database=system
+# php artisan passport:install 
+# php artisan storage:link
+# php artisan tenancy:migrate
+# php artisan tenancy:db:seed
+ENV="local"
+
+echo "#####  Você esta em ambiente de produção ? (s/n)"
+read answer
+
+if [ "$answer" != "${answer#[YySs]}" ] ;then
+    ENV="production" 
+    
+    if [ -e ~/.zshrc ] ;then
+        echo "export APP_ENV='$ENV'" >> ~/.zshrc
+    else
+        echo "export APP_ENV='$ENV'" >> ~/.bashrc
+    fi
+else
+    ENV="local" 
+    
+    if [ -e ~/.zshrc ] ;then
+        cp ~/.zshrc ~/.zshrc.bkp
+        sed -ie '/APP_ENV/ { N; d; }' ~/.zshrc
+        echo "export APP_ENV='$ENV'" >> ~/.zshrc
+    else
+        cp ~/.bashrc ~/.bashrc.bkp
+        sed -ie '/APP_ENV/ { N; d; }' ~/.bashrc
+        echo "export APP_ENV='$ENV'" >> ~/.bashrc
+    fi
+fi
+
+echo "você está em ambiente: -> $ENV <-"
+
+echo "#####  Deseja Iniciar O Ambiente em Docker ? (s/n)"
+read answer
+
+if [ "$answer" != "${answer#[YySs]}" ] ;then
+
+    if [ -e ./docker-compose.yml ] ;then
+    
+        ./develop up -d
+        
+        echo "#####  Deseja executar Composer Install? (s/n)"
+        read answer
+        
+        if [ "$answer" != "${answer#[YySs]}" ] ;then
+            if [ -e ./src/composer.json ] ;then
+                ./develop composer install
+            else
+                echo "composer.json não encontrado, verifica se esta no diretório correto"
+            fi
+        fi
+        
+        echo "#####  Copiar env-example para .env ? (s/n)"
+        read answer
+        
+        if [ "$answer" != "${answer#[YySs]}" ] ;then
+            if [ -e ./src/env-example ] ;then
+                cp ./src/env-example ./src/.env
+            else
+                echo "env-example não encontrado"
+            fi
+        fi
+        
+        echo "#####  Rodar Migrations ? (s/n)"
+        read answer
+        
+        if [ "$answer" != "${answer#[YySs]}" ] ;then
+            ./develop art migrate:refresh
+        fi
+        
+#         echo "#####  Passport Instalar ? (s/n)"
+#         read answer
+#
+#         if [ "$answer" != "${answer#[YySs]}" ] ;then
+#             sed -ie '/PERSONAL_CLIENT_ID/ { N; d; }' ./src/.env
+#             sed -ie '/PASSWORD_CLIENT/ { N; d; }' ./src/.env
+#             ./develop art passport:install >> ./src/.env
+#             rm ./src/.enve
+#             rm ./src/.rnd
+#         fi
+        
+        echo "#####  Link pasta de upload pública para diretório público da aplicação ? (s/n)"
+        read answer
+        
+        if [ "$answer" != "${answer#[YySs]}" ] ;then
+            ./develop art storage:link
+        fi
+
+        echo "#####  Run Seeder ? (s/n)"
+        read answer
+        
+        if [ "$answer" != "${answer#[YySs]}" ] ;then
+            ./develop art db:seed
+        fi
+    else
+        echo "docker-compose não encontrado. Verifique se esta no diretório correto."
+    fi;
+fi;

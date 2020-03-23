@@ -2,7 +2,6 @@ version: '3.3'
 services:
   php:
     build: docker/php-fpm
-    container_name: ps-upload-php
     restart: always
     volumes:
       - ./src/:/var/www/laravel
@@ -11,7 +10,6 @@ services:
       - network
   nginx:
     build: docker/nginx
-    container_name: ps-upload-nginx
     restart: always
     ports:
       - 9002:80
@@ -25,7 +23,6 @@ services:
       - network
   postgres:
     image: postgres:10
-    container_name: ps-upload-postgres
     restart: always
     volumes:
       - "postgres-data:/var/lib/postgresql/data"
